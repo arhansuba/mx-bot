@@ -1,0 +1,7 @@
+multiversx-sdk
+selenium
+python-dotenv
+google-generativeai
+webdriver-manager
+requests
+tweepy==4.12.1

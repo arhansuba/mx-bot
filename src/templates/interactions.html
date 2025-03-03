@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Interactions - MultiversX AI Twitter Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Interactions</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Username</th>
+                                <th>Classification</th>
+                                <th>Tweet</th>
+                                <th>Response</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interaction in interactions %}
+                            <tr>
+                                <td>{{ interaction.timestamp }}</td>
+                                <td>{{ interaction.username }}</td>
+                                <td>{{ interaction.classification }}</td>
+                                <td>{{ interaction.tweet_text }}</td>
+                                <td>{{ interaction.response }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

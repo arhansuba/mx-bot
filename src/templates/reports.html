@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - MultiversX AI Twitter Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Reports</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Available Reports</h5>
+                <div class="list-group">
+                    {% for report in reports %}
+                    <a href="/reports/{{ report.filename }}" class="list-group-item list-group-item-action">
+                        {{ report.date }} - {{ report.interactions }} interactions
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if report_images %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Report Charts</h5>
+                <div class="row">
+                    {% for image in report_images %}
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <img src="/analytics/{{ image }}" class="img-fluid" alt="Chart">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

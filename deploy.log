@@ -1,0 +1,14 @@
+2025-03-02 08:36:06,481 - deploy - INFO - Starting deployment
+2025-03-02 08:36:06,481 - deploy - INFO - Creating virtual environment
+2025-03-02 08:36:06,482 - deploy - INFO - Running command: ['C:\\Python312\\python.exe', '-m', 'venv', 'C:\\Users\\subas\\multiversx-ai-bot\\venv']
+2025-03-02 08:36:09,914 - deploy - INFO - Installing dependencies
+2025-03-02 08:36:09,914 - deploy - INFO - Running command: ['C:\\Users\\subas\\multiversx-ai-bot\\venv\\Scripts\\pip.exe', 'install', '--upgrade', 'pip']
+2025-03-02 08:36:12,205 - deploy - ERROR - Command failed: Command '['C:\\Users\\subas\\multiversx-ai-bot\\venv\\Scripts\\pip.exe', 'install', '--upgrade', 'pip']' returned non-zero exit status 1.
+2025-03-02 08:36:12,205 - deploy - ERROR - Output: Requirement already satisfied: pip in c:\users\subas\multiversx-ai-bot\venv\lib\site-packages (24.0)
+Collecting pip
+  Downloading pip-25.0.1-py3-none-any.whl.metadata (3.7 kB)
+Downloading pip-25.0.1-py3-none-any.whl (1.8 MB)
+   ---------------------------------------- 1.8/1.8 MB 3.0 MB/s eta 0:00:00
+
+2025-03-02 08:36:12,207 - deploy - ERROR - Deployment failed: Command '['C:\\Users\\subas\\multiversx-ai-bot\\venv\\Scripts\\pip.exe', 'install', '--upgrade', 'pip']' returned non-zero exit status 1.
+2025-03-02 08:36:17,246 - deploy - INFO - Starting MultiversX AI Twitter Bot
