@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-# src/twitter/twitter_api_poster.py
-
+# src/twitter/twitter_poster.py
 import os
-import tweepy
 import logging
+import tweepy
+import random
 import asyncio
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Optional, Dict, Any, List
 
 class TwitterAPIClient:
     """Twitter API client that handles authentication and posting tweets"""
@@ -147,7 +146,7 @@ class TwitterPoster:
     """Main Twitter poster class for the MultiversX AI Bot"""
     
     def __init__(self, api_key: str = None, api_secret: str = None, 
-                 access_token: str = None, access_token_secret: str = None):
+                access_token: str = None, access_token_secret: str = None):
         """Initialize the Twitter poster with API credentials"""
         self.logger = logging.getLogger("twitter_poster")
         
@@ -157,12 +156,17 @@ class TwitterPoster:
         self.access_token = access_token or os.getenv('TWITTER_ACCESS_TOKEN')
         self.access_token_secret = access_token_secret or os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
         
-        # Validate credentials
+        # Import other components
+        self.ai_analyzer = self._import_component('src.ai_analyzer', 'AIAnalyzer')
+        self.tweet_generator = self._import_component('src.nlp_tweet_generator', 'NLPTweetGenerator')
+        self.blockchain_monitor = self._import_component('src.blockchain_monitor', 'BlockchainMonitor')
+        
+        # Validate Twitter credentials
         if not all([self.api_key, self.api_secret, self.access_token, self.access_token_secret]):
             self.logger.error("Missing Twitter API credentials")
             raise ValueError("Missing Twitter API credentials")
             
-        # Initialize client
+        # Initialize Twitter client
         self.client = TwitterAPIClient(
             api_key=self.api_key,
             api_secret=self.api_secret,
@@ -175,25 +179,102 @@ class TwitterPoster:
         self.post_count_today = 0
         self.max_posts_per_day = 50  # Default limit
         
+        # Template patterns for variety when AI generation fails
+        self.tweet_templates = [
+            "📊 #MultiversX Network Update | {time}\n\n💰 EGLD: ${price}\n🔢 Transactions: {txs}\n👥 Accounts: {accounts}\n\n#EGLD",
+            "🚀 #MultiversX Ecosystem Report\n\n$EGLD: ${price}\n📈 {txs} transactions\n👨‍💻 {accounts} accounts\n\n#Web3 #Blockchain",
+            "#MultiversX Stats | {time}\n\nEGLD Price: ${price}\nTotal Transactions: {txs}\nTotal Accounts: {accounts}\n\n#EGLD #Crypto",
+            "⚡ MultiversX Network Pulse ⚡\n\nEGLD: ${price}\nTransactions: {txs}\nAccounts: {accounts}\n\n#MultiversX #EGLD"
+        ]
+        self.last_template_index = -1
+
+    def _import_component(self, module_path, class_name):
+        """Dynamically import a component if it exists"""
+        try:
+            module = __import__(module_path, fromlist=[class_name])
+            component_class = getattr(module, class_name)
+            return component_class()
+        except (ImportError, AttributeError):
+            self.logger.warning(f"Could not import {class_name} from {module_path}")
+            return None
+        except Exception as e:
+            self.logger.warning(f"Error initializing {class_name}: {str(e)}")
+            return None
+        
     async def verify_connection(self) -> bool:
         """Async wrapper for verifying Twitter connection"""
         return self.client.verify_connection()
+    
+    async def generate_tweet_content(self, price=None, stats=None, events=None) -> str:
+        """Generate tweet content based on blockchain data using NLP Generator if available"""
+        try:
+            # Try using the NLP Tweet Generator component if available
+            if self.tweet_generator:
+                content = await self.tweet_generator.generate_tweet({
+                    'price': price,
+                    'transactions': stats.get('transactions') if stats else None,
+                    'accounts': stats.get('accounts') if stats else None,
+                    'events': events
+                })
+                
+                if content:
+                    self.logger.info("Generated tweet content using NLP Tweet Generator")
+                    return content
+                    
+            # If no content was generated or no generator available, use templates
+            # Get new template (different from the last one used)
+            template_index = random.randint(0, len(self.tweet_templates) - 1)
+            while template_index == self.last_template_index and len(self.tweet_templates) > 1:
+                template_index = random.randint(0, len(self.tweet_templates) - 1)
+                
+            self.last_template_index = template_index
+            template = self.tweet_templates[template_index]
+            
+            # Format the template with data
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Add commas to large numbers for readability
+            txs_formatted = f"{stats.get('transactions', 0):,}" if stats and 'transactions' in stats else "N/A"
+            accounts_formatted = f"{stats.get('accounts', 0):,}" if stats and 'accounts' in stats else "N/A"
+            
+            content = template.format(
+                time=current_time,
+                price=price if price else "N/A",
+                txs=txs_formatted,
+                accounts=accounts_formatted
+            )
+            
+            self.logger.info(f"Generated tweet content using template #{template_index+1}")
+            return content
+            
+        except Exception as e:
+            self.logger.error(f"Error generating tweet content: {str(e)}")
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            return f"#MultiversX Update | {current_time}\n\nEGLD: ${price if price else 'N/A'}\nTransactions: {stats.get('transactions', 'N/A') if stats else 'N/A'}\nAccounts: {stats.get('accounts', 'N/A') if stats else 'N/A'}\n\n#EGLD"
         
-    async def post_tweet(self, content: str) -> Optional[str]:
+    async def post_tweet(self, content=None, price=None, stats=None, events=None) -> Optional[str]:
         """Post a tweet to Twitter using API"""
-        # Check rate limits
-        if not self._check_rate_limits():
-            self.logger.warning("Rate limit would be exceeded - not posting tweet")
+        try:
+            # Generate tweet content if not provided
+            if not content:
+                content = await self.generate_tweet_content(price, stats, events)
+                
+            # Check rate limits
+            if not self._check_rate_limits():
+                self.logger.warning("Rate limit would be exceeded - not posting tweet")
+                return None
+                
+            # Post the tweet
+            tweet_id = self.client.post_tweet(content)
+            
+            # Update rate limit tracking
+            if tweet_id:
+                self._update_rate_tracking()
+                
+            return tweet_id
+        except Exception as e:
+            self.logger.error(f"Error in post_tweet: {str(e)}")
             return None
-            
-        # Post the tweet
-        tweet_id = self.client.post_tweet(content)
-        
-        # Update rate limit tracking
-        if tweet_id:
-            self._update_rate_tracking()
-            
-        return tweet_id
         
     async def post_tweet_with_media(self, content: str, media_path: str) -> Optional[str]:
         """Post a tweet with media attachment"""
@@ -263,43 +344,3 @@ class TwitterPoster:
         """Clean up resources"""
         # Nothing to clean up with Twitter API client
         pass
-
-# Debug script
-async def test_twitter_poster():
-    """Test the Twitter poster functionality"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    logger = logging.getLogger("twitter_test")
-    
-    try:
-        # Create poster
-        poster = TwitterPoster()
-        
-        # Verify connection
-        logger.info("Verifying Twitter connection...")
-        if not await poster.verify_connection():
-            logger.error("Failed to connect to Twitter API")
-            return
-            
-        # Post test tweet
-        test_content = f"MultiversX AI Bot - Test tweet at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        logger.info(f"Posting test tweet: {test_content}")
-        
-        tweet_id = await poster.post_tweet(test_content)
-        
-        if tweet_id:
-            logger.info(f"Test tweet posted successfully with ID: {tweet_id}")
-            logger.info(f"View at: https://twitter.com/anyuser/status/{tweet_id}")
-        else:
-            logger.error("Failed to post test tweet")
-            
-    except Exception as e:
-        logger.error(f"Error in test: {str(e)}", exc_info=True)
-    finally:
-        if 'poster' in locals():
-            await poster.close()
-
-if __name__ == "__main__":
-    asyncio.run(test_twitter_poster())

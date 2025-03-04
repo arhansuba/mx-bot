@@ -1,0 +1,37 @@
+{
+  "educational": [
+    "Did you know? {fact} #MultiversX #Blockchain",
+    "Here's an interesting fact about #MultiversX: {fact}",
+    "Learn something new about #MultiversX today: {fact}",
+    "\ud83d\udca1 MultiversX Insight: {fact} #Blockchain #Tech",
+    "Today's #MultiversX knowledge drop: {fact} \ud83d\udd0d"
+  ],
+  "news": [
+    "\ud83d\udce2 MultiversX Update: {news} #MultiversX",
+    "Breaking news from the MultiversX ecosystem: {news} #Crypto",
+    "Just in: {news} #MultiversX #Blockchain",
+    "The latest from MultiversX: {news} \ud83c\udf10",
+    "MultiversX News Alert: {news} #EGLD"
+  ],
+  "stats": [
+    "\ud83d\udcca MultiversX Stats: {stats} #EGLD",
+    "The numbers are in! {stats} #MultiversX",
+    "MultiversX by the numbers: {stats} \ud83d\udcc8",
+    "Today's MultiversX ecosystem stats: {stats} #Blockchain",
+    "Check out these MultiversX metrics: {stats} #Crypto"
+  ],
+  "community": [
+    "Shout out to the amazing MultiversX community! {message} #MultiversXCommunity",
+    "We appreciate all of you in the MultiversX ecosystem! {message} \ud83d\ude4f",
+    "The strength of MultiversX is its community. {message} #EGLD",
+    "To all MultiversX builders and users: {message} \ud83d\ude80",
+    "Community update: {message} #MultiversX #Blockchain"
+  ],
+  "features": [
+    "Spotlight on MultiversX features: {feature} #MultiversX",
+    "Have you tried this MultiversX feature? {feature} #Blockchain",
+    "MultiversX Highlight: {feature} \u2728",
+    "Powerful MultiversX functionality: {feature} #EGLD",
+    "Feature Focus: {feature} #MultiversX #Technology"
+  ]
+}
